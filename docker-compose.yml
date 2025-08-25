@@ -1,0 +1,68 @@
+# ==========================================================================
+# Qianshe Platform Common 基础设施服务配置
+# ==========================================================================
+# 
+# 🎯 管理策略：只管理基础设施服务
+# 🌐 网络策略：统一使用 qianshe-network 网络
+# 🚀 使用方法：docker-compose up -d
+# 
+# 📦 包含服务：
+#   - gateway (网关服务)
+#   - user-auth (认证服务)
+# 
+# ⚠️  注意：业务服务请使用对应业务项目的配置启动
+# ==========================================================================
+
+version: '3.8'
+
+name: qianshe  # 与workspace保持一致的项目名称，避免容器名冲突
+
+# 公共配置
+x-app-env: &app-env
+  SPRING_PROFILES_ACTIVE: test
+  SPRING_CLOUD_NACOS_SERVER_ADDR: nacos-standalone-derby:8848
+  SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos-standalone-derby:8848
+  SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos-standalone-derby:8848
+  # 命名空间
+  SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE: b84b598d-bbca-4fca-83fe-a1be6e34424b
+  SPRING_CLOUD_NACOS_CONFIG_NAMESPACE: b84b598d-bbca-4fca-83fe-a1be6e34424b
+  # 配置中心是否启用
+  SPRING_CLOUD_NACOS_CONFIG_ENABLED: true
+
+x-db-config: &db-config
+  SPRING_REDIS_HOST: redis
+  SPRING_REDIS_PORT: 6379
+
+services:
+  # ========== 基础设施服务 ==========
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    image: qianshe/gateway:latest
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    networks:
+      - qianshe-network
+    environment:
+      <<: [*app-env, *db-config]
+
+  user-auth:
+    build:
+      context: ./user-auth
+      dockerfile: Dockerfile
+    image: qianshe/user-auth:latest
+    container_name: user-auth
+    restart: unless-stopped
+    networks:
+      - qianshe-network
+    environment:
+      <<: [*app-env, *db-config]
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/qianshe_user?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+
+# 统一网络配置（与workspace保持一致）
+networks:
+  qianshe-network:
+    external: true
