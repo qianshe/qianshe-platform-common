@@ -1,0 +1,258 @@
+# ================================
+# Java项目标准忽略项
+# ================================
+
+# 编译输出目录
+target/
+build/
+out/
+bin/
+classes/
+*/target/
+*/build/
+*/out/
+*/bin/
+*/classes/
+
+# Maven相关
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle相关
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# ================================
+# IDE配置文件
+# ================================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+.idea_modules/
+atlassian-ide-plugin.xml
+
+# Eclipse
+.project
+.classpath
+.metadata/
+.settings/
+.loadpath
+.recommenders/
+.apt_generated/
+.apt_generated_test/
+.factorypath
+.buildpath
+.target
+.sts4-cache/
+
+# Visual Studio Code
+.vscode/
+.cursorrules
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ================================
+# 操作系统文件
+# ================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ================================
+# Spring Boot项目特定忽略项
+# ================================
+
+# 日志文件
+*.log
+*.log.*
+logs/
+log/
+/logs/
+/fantasy-core/log/
+/fantasy-core/logs/
+application.log
+spring.log
+logback.log
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
+
+# 临时文件和缓存
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+.temp/
+
+# ================================
+# 开发环境相关
+# ================================
+
+# 本地配置文件（包含敏感信息）
+application-local.yml
+application-local.yaml
+application-local.properties
+application-dev.yml
+application-dev.yaml
+application-dev.properties
+application-prod.yml
+application-prod.yaml
+application-prod.properties
+*-local.yml
+*-local.yaml
+*-local.properties
+
+# 环境变量文件
+.env
+.env.local
+.env.development
+.env.production
+
+# 测试覆盖率报告
+target/site/jacoco/
+target/surefire-reports/
+target/failsafe-reports/
+coverage/
+.nyc_output/
+*.lcov
+
+# ================================
+# 项目特定需求
+# ================================
+
+# 文档目录（如果包含临时文档）
+doc/
+docs/
+docs/temp/
+.promptx/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+h2/
+hsqldb/
+
+# Redis相关（如果有本地Redis数据文件）
+dump.rdb
+appendonly.aof
+redis-data/
+
+# 上传文件目录
+uploads/
+upload/
+files/
+static/uploads/
+
+# 备份文件
+*.bak
+*.backup
+*.orig
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ================================
+# 保留重要文件（确保不被忽略）
+# ================================
+
+# 确保Lua脚本不被忽略
+!src/main/resources/lua/
+!src/main/resources/lua/*.lua
+!**/src/main/resources/lua/
+!**/src/main/resources/lua/*.lua
+
+# 确保配置模板不被忽略
+!application.yml
+!application.yaml
+!application.properties
+!**/application.yml
+!**/application.yaml
+!**/application.properties
+
+# 确保重要的配置文件不被忽略
+!src/main/resources/
+!**/src/main/resources/
+
+# ================================
+# 其他常见忽略项
+# ================================
+
+# Node.js（如果项目中有前端部分）
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Python（如果有Python脚本）
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# 版本控制
+.git/
+.svn/
+.hg/
+.augment/
+.cunzhi-memory/
+.qoder/
+/doc/
