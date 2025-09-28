@@ -18,6 +18,28 @@
         <dependency>
             <groupId>com.qianshe</groupId>
             <artifactId>common</artifactId>
+            <exclusions>
+                <!-- 排除MyBatis Plus -->
+                <exclusion>
+                    <groupId>com.baomidou</groupId>
+                    <artifactId>mybatis-plus-boot-starter</artifactId>
+                </exclusion>
+                <!-- 排除MySQL驱动 -->
+                <exclusion>
+                    <groupId>com.mysql</groupId>
+                    <artifactId>mysql-connector-j</artifactId>
+                </exclusion>
+                <!-- 排除Druid连接池 -->
+                <exclusion>
+                    <groupId>com.alibaba</groupId>
+                    <artifactId>druid-spring-boot-starter</artifactId>
+                </exclusion>
+                <!-- 排除Sa-Token Servlet支持，Gateway使用响应式 -->
+                <exclusion>
+                    <groupId>cn.dev33</groupId>
+                    <artifactId>sa-token-spring-boot3-starter</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- ========== Gateway 特有依赖 ========== -->
