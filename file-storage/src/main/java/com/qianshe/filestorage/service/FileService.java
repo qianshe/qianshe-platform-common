@@ -4,8 +4,7 @@ import com.qianshe.filestorage.dto.FileInfoResponse;
 import com.qianshe.filestorage.dto.FileUploadRequest;
 import com.qianshe.filestorage.entity.FileInfo;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.List;
 
@@ -73,12 +72,12 @@ public interface FileService {
 
     /**
      * 获取用户文件列表
-     * 
+     *
      * @param userId 用户ID
-     * @param pageable 分页参数
+     * @param page 分页参数
      * @return 文件列表
      */
-    Page<FileInfoResponse> getUserFiles(Long userId, Pageable pageable);
+    Page<FileInfoResponse> getUserFiles(Long userId, Page<com.qianshe.filestorage.entity.FileInfo> page);
 
     /**
      * 根据业务类型获取文件列表

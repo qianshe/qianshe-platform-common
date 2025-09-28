@@ -12,9 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +62,7 @@ public class FileController {
         request.setGenerateThumbnail(generateThumbnail);
         
         FileInfoResponse response = fileService.uploadFile(request, userId);
-        return Result.success(response);
+        return Result.ok(response);
     }
 
     @PostMapping("/upload/batch")
@@ -90,7 +88,7 @@ public class FileController {
         }).toList();
         
         List<FileInfoResponse> responses = fileService.uploadFiles(requests, userId);
-        return Result.success(responses);
+        return Result.ok(responses);
     }
 
     @GetMapping("/{fileId}")
@@ -151,7 +149,7 @@ public class FileController {
         }
         
         FileInfoResponse response = fileService.getFileInfo(fileId, userId);
-        return Result.success(response);
+        return Result.ok(response);
     }
 
     @DeleteMapping("/{fileId}")
@@ -162,7 +160,7 @@ public class FileController {
         
         Long userId = StpUtil.getLoginIdAsLong();
         boolean deleted = fileService.deleteFile(fileId, userId);
-        return Result.success(deleted);
+        return Result.ok(deleted);
     }
 
     @DeleteMapping("/batch")
@@ -173,18 +171,20 @@ public class FileController {
         
         Long userId = StpUtil.getLoginIdAsLong();
         List<Long> deletedIds = fileService.deleteFiles(fileIds, userId);
-        return Result.success(deletedIds);
+        return Result.ok(deletedIds);
     }
 
     @GetMapping("/my")
     @SaCheckLogin
     @Operation(summary = "获取我的文件列表", description = "分页获取当前用户的文件列表")
     public Result<Page<FileInfoResponse>> getMyFiles(
-            @PageableDefault(size = 20) Pageable pageable) {
-        
+            @RequestParam(defaultValue = "1") Long current,
+            @RequestParam(defaultValue = "20") Long size) {
+
         Long userId = StpUtil.getLoginIdAsLong();
-        Page<FileInfoResponse> files = fileService.getUserFiles(userId, pageable);
-        return Result.success(files);
+        Page<com.qianshe.filestorage.entity.FileInfo> page = new Page<>(current, size);
+        Page<FileInfoResponse> files = fileService.getUserFiles(userId, page);
+        return Result.ok(files);
     }
 
     @GetMapping("/business")
@@ -201,7 +201,7 @@ public class FileController {
         }
         
         List<FileInfoResponse> files = fileService.getBusinessFiles(businessType, businessId, userId);
-        return Result.success(files);
+        return Result.ok(files);
     }
 
     @GetMapping("/{fileId}/url")
@@ -217,7 +217,7 @@ public class FileController {
         }
         
         String url = fileService.generateAccessUrl(fileId, userId);
-        return Result.success(url);
+        return Result.ok(url);
     }
 
     @GetMapping("/{fileId}/presigned-url")
@@ -229,7 +229,7 @@ public class FileController {
         
         Long userId = StpUtil.getLoginIdAsLong();
         String url = fileService.generatePresignedUrl(fileId, expireSeconds, userId);
-        return Result.success(url);
+        return Result.ok(url);
     }
 
     @GetMapping("/usage")
@@ -238,6 +238,6 @@ public class FileController {
     public Result<FileService.FileUsageStats> getFileUsage() {
         Long userId = StpUtil.getLoginIdAsLong();
         FileService.FileUsageStats stats = fileService.getUserFileUsage(userId);
-        return Result.success(stats);
+        return Result.ok(stats);
     }
 }

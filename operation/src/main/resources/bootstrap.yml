@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: operation
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${SPRING_CLOUD_NACOS_SERVER_ADDR:localhost:8848}
+        username: nacos
+        password: nacos
+        namespace: ${SPRING_CLOUD_NACOS_NAMESPACE:}
+        group: ${SPRING_CLOUD_NACOS_GROUP:DEFAULT_GROUP}
+      config:
+        server-addr: ${SPRING_CLOUD_NACOS_SERVER_ADDR:localhost:8848}
+        username: nacos
+        password: nacos
+        namespace: ${SPRING_CLOUD_NACOS_NAMESPACE:}
+        group: ${SPRING_CLOUD_NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yml
+        shared-configs:
+          - data-id: common.yml
+            group: DEFAULT_GROUP
+            refresh: true

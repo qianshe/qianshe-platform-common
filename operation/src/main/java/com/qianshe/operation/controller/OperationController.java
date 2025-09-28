@@ -42,10 +42,10 @@ public class OperationController {
     public Result<AuditTask> createAuditTask(@RequestBody AuditTask auditTask) {
         try {
             AuditTask created = operationService.createAuditTask(auditTask);
-            return Result.success(created);
+            return Result.ok(created);
         } catch (Exception e) {
             log.error("创建审核任务失败", e);
-            return Result.error("创建审核任务失败: " + e.getMessage());
+            return Result.fail("创建审核任务失败: " + e.getMessage());
         }
     }
 
@@ -59,10 +59,10 @@ public class OperationController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<AuditTask> tasks = operationService.getAuditTasks(pageable);
-            return Result.success(tasks);
+            return Result.ok(tasks);
         } catch (Exception e) {
             log.error("查询审核任务失败", e);
-            return Result.error("查询审核任务失败: " + e.getMessage());
+            return Result.fail("查询审核任务失败: " + e.getMessage());
         }
     }
 
@@ -77,10 +77,10 @@ public class OperationController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<AuditTask> tasks = operationService.getAuditTasksByStatus(status, pageable);
-            return Result.success(tasks);
+            return Result.ok(tasks);
         } catch (Exception e) {
             log.error("按状态查询审核任务失败", e);
-            return Result.error("按状态查询审核任务失败: " + e.getMessage());
+            return Result.fail("按状态查询审核任务失败: " + e.getMessage());
         }
     }
 
@@ -95,10 +95,10 @@ public class OperationController {
             @RequestParam(required = false) String comment) {
         try {
             boolean success = operationService.auditTask(taskId, auditorId, status, comment);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("审核任务失败", e);
-            return Result.error("审核任务失败: " + e.getMessage());
+            return Result.fail("审核任务失败: " + e.getMessage());
         }
     }
 
@@ -111,10 +111,10 @@ public class OperationController {
             @Parameter(description = "结束时间") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         try {
             Map<String, Object> statistics = operationService.getPlatformStatistics(startTime, endTime);
-            return Result.success(statistics);
+            return Result.ok(statistics);
         } catch (Exception e) {
             log.error("获取平台统计失败", e);
-            return Result.error("获取平台统计失败: " + e.getMessage());
+            return Result.fail("获取平台统计失败: " + e.getMessage());
         }
     }
 
@@ -127,10 +127,10 @@ public class OperationController {
             @Parameter(description = "结束时间") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         try {
             Map<String, Object> statistics = operationService.getAuditStatistics(startTime, endTime);
-            return Result.success(statistics);
+            return Result.ok(statistics);
         } catch (Exception e) {
             log.error("获取审核统计失败", e);
-            return Result.error("获取审核统计失败: " + e.getMessage());
+            return Result.fail("获取审核统计失败: " + e.getMessage());
         }
     }
 
@@ -141,10 +141,10 @@ public class OperationController {
     public Result<Map<String, Object>> getSystemConfig() {
         try {
             Map<String, Object> config = operationService.getSystemConfig();
-            return Result.success(config);
+            return Result.ok(config);
         } catch (Exception e) {
             log.error("获取系统配置失败", e);
-            return Result.error("获取系统配置失败: " + e.getMessage());
+            return Result.fail("获取系统配置失败: " + e.getMessage());
         }
     }
 
@@ -155,10 +155,10 @@ public class OperationController {
     public Result<Boolean> updateSystemConfig(@RequestBody Map<String, Object> config) {
         try {
             boolean success = operationService.updateSystemConfig(config);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("更新系统配置失败", e);
-            return Result.error("更新系统配置失败: " + e.getMessage());
+            return Result.fail("更新系统配置失败: " + e.getMessage());
         }
     }
 }

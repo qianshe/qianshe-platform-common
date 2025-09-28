@@ -10,43 +10,59 @@ spring:
   # 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/qianshe_file_storage?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/file_storage?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8}
     username: root
-    password: 123456
-    hikari:
-      minimum-idle: 5
-      maximum-pool-size: 20
-      auto-commit: true
-      idle-timeout: 30000
-      pool-name: FileStorageHikariCP
-      max-lifetime: 1800000
-      connection-timeout: 30000
-
-  # JPA配置
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
-    open-in-view: false
+    password: qianshe_password
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 初始连接数
+      initialSize: 5
+      # 最小连接池数量
+      minIdle: 10
+      # 最大连接池数量
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
 
   # Redis配置
   data:
     redis:
-      host: redis
-      port: 6379
-      password: 123456
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: qianshe_password
       database: 3
-      timeout: 6000ms
+      timeout: 10s
       lettuce:
         pool:
-          max-active: 20
-          max-wait: -1ms
-          max-idle: 8
           min-idle: 0
+          max-idle: 8
+          max-active: 8
+          max-wait: -1ms
+
+  # Jackson配置，支持Java 8时间类型
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+# MyBatis Plus配置
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    auto-mapping-behavior: full
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # mapper-locations: classpath*:/mapper/**/*.xml  # 使用注解方式，不需要XML
+  type-aliases-package: com.qianshe.filestorage.entity
 
   # 文件上传配置
   servlet:
@@ -55,35 +71,44 @@ spring:
       max-request-size: 500MB
       enabled: true
 
-  # Cloud配置
-  cloud:
-    nacos:
-      discovery:
-        server-addr: nacos:8848
-        namespace: qianshe
-        group: DEFAULT_GROUP
-        service: ${spring.application.name}
-        metadata:
-          version: 1.0.0
-          zone: default
+  # Cloud配置 - 主要配置在bootstrap.yml中
 
 # Sa-Token配置
+# 本服务不做鉴权，仅用于获取用户信息
+# 简化设计，只使用默认StpLogic，不区分多账号体系
 sa-token:
-  token-name: Authorization
-  token-prefix: Bearer
-  timeout: 2592000
-  activity-timeout: -1
-  is-concurrent: true
-  is-share: true
-  token-style: uuid
-  is-log: false
-  is-colorLog: false
-  dao-type: redis
-  redis-config:
-    host: redis
-    port: 6379
-    password: 123456
-    database: 1
+  # 通用配置
+  token-name: Authorization     # token名称，同网关配置保持一致
+  timeout: 2592000             # token有效期（秒）：30天
+  active-timeout: 1800         # 临时有效期（秒）：30分钟
+  is-concurrent: true          # 是否允许同一账号多地同时登录
+  is-share: false             # 多人登录同一账号时是否共享token
+  token-style: uuid           # token风格
+  token-prefix: ""            # 不使用token前缀
+  is-log: true               # 输出操作日志
+  is-read-cookie: false       # 不从cookie中读取token
+  is-read-head: true          # 从请求头读取token
+  is-print: false            # 不打印版本字符画
+  # 关闭自动登录校验，由网关统一处理鉴权
+  auto-renew: false          # 不自动续签token
+  check-login: false         # 不检查登录状态
+  is-read-body: false        # 不从请求体读取token
+  is-write-head: false       # 不在响应头中返回token
+  token-session-check-login: false  # 不检查token session中的登录状态
+  # Redis配置
+  alone-redis:
+    # 使用与spring.data.redis相同的配置
+    database: ${spring.data.redis.database}
+    host: ${spring.data.redis.host}
+    port: ${spring.data.redis.port}
+    password: ${spring.data.redis.password}
+    timeout: ${spring.data.redis.timeout}
+    lettuce:
+      pool:
+        min-idle: ${spring.data.redis.lettuce.pool.min-idle}
+        max-idle: ${spring.data.redis.lettuce.pool.max-idle}
+        max-active: ${spring.data.redis.lettuce.pool.max-active}
+        max-wait: ${spring.data.redis.lettuce.pool.max-wait}
 
 # 文件存储配置
 file:
@@ -163,13 +188,26 @@ management:
 # 日志配置
 logging:
   level:
-    com.qianshe.filestorage: INFO
-    org.springframework.web: INFO
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    root: INFO
+    com.qianshe.filestorage: info
+    # com.qianshe.common: debug
+    cn.dev33.satoken: info
+    # Redis详细操作日志配置
+    # 显示具体的Redis命令和参数
+#    org.springframework.data.redis.core.RedisTemplate: info
+#    org.springframework.data.redis.core.StringRedisTemplate: info
+
+    # 显示Redis连接池信息
+    # org.springframework.data.redis.connection: DEBUG
+
+    # 显示详细的Lettuce操作  (可查看脚本执行日志)
+#    io.lettuce.core.protocol: trace
+
+    # 显示Sa-Token的Redis操作
+    # cn.dev33.satoken.dao.SaTokenDaoRedis: TRACE
+
+    # 显示Spring Cache操作
+#    org.springframework.cache: info
 
 # OpenAPI文档配置
 springdoc:

@@ -6,7 +6,7 @@ import com.qianshe.filestorage.dto.FileUploadRequest;
 import com.qianshe.filestorage.entity.FileInfo;
 import com.qianshe.filestorage.enums.FileAccessType;
 import com.qianshe.filestorage.enums.FileStatus;
-import com.qianshe.filestorage.repository.FileInfoRepository;
+import com.qianshe.filestorage.mapper.FileInfoMapper;
 import com.qianshe.filestorage.service.FileService;
 import com.qianshe.filestorage.storage.StorageException;
 import com.qianshe.filestorage.storage.StorageService;
@@ -15,8 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -45,7 +45,7 @@ import java.util.Optional;
 @Transactional
 public class FileServiceImpl implements FileService {
 
-    private final FileInfoRepository fileInfoRepository;
+    private final FileInfoMapper fileInfoMapper;
     private final StorageService storageService;
     private final FileStorageConfig fileStorageConfig;
     private final Tika tika = new Tika();
@@ -62,10 +62,10 @@ public class FileServiceImpl implements FileService {
             String fileHash = calculateFileHash(file);
             
             // 检查是否已存在相同文件
-            Optional<FileInfo> existingFile = fileInfoRepository.findByFileHashAndStatus(fileHash, FileStatus.AVAILABLE);
-            if (existingFile.isPresent() && !request.getOverwrite()) {
+            FileInfo existingFile = fileInfoMapper.findByFileHashAndStatus(fileHash, FileStatus.AVAILABLE);
+            if (existingFile != null && !request.getOverwrite()) {
                 // 返回已存在的文件信息
-                return convertToResponse(existingFile.get());
+                return convertToResponse(existingFile);
             }
             
             // 生成存储路径
@@ -79,7 +79,7 @@ public class FileServiceImpl implements FileService {
             fileInfo.setStatus(FileStatus.AVAILABLE);
             
             // 保存到数据库
-            fileInfo = fileInfoRepository.save(fileInfo);
+            fileInfoMapper.insert(fileInfo);
             
             log.info("文件上传成功: fileId={}, originalName={}, userId={}", 
                     fileInfo.getId(), file.getOriginalFilename(), userId);
@@ -119,7 +119,7 @@ public class FileServiceImpl implements FileService {
             InputStream inputStream = storageService.load(fileInfo.getStoragePath());
             
             // 更新下载次数和最后访问时间
-            fileInfoRepository.incrementDownloadCount(fileId, LocalDateTime.now());
+            fileInfoMapper.incrementDownloadCount(fileId, LocalDateTime.now());
             
             log.info("文件下载: fileId={}, userId={}", fileId, userId);
             
@@ -146,7 +146,7 @@ public class FileServiceImpl implements FileService {
             // 软删除：更新状态为已删除
             fileInfo.setStatus(FileStatus.DELETED);
             fileInfo.setUpdatedAt(LocalDateTime.now());
-            fileInfoRepository.save(fileInfo);
+            fileInfoMapper.updateById(fileInfo);
             
             log.info("文件删除成功: fileId={}, userId={}", fileId, userId);
             return true;
@@ -176,19 +176,25 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FileInfoResponse> getUserFiles(Long userId, Pageable pageable) {
-        Page<FileInfo> fileInfoPage = fileInfoRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
-                userId, FileStatus.AVAILABLE, pageable);
-        
-        return fileInfoPage.map(this::convertToResponse);
+    public com.baomidou.mybatisplus.extension.plugins.pagination.Page<FileInfoResponse> getUserFiles(Long userId, com.baomidou.mybatisplus.extension.plugins.pagination.Page<FileInfo> page) {
+        Page<FileInfo> fileInfoPage = fileInfoMapper.findByUserIdAndStatusOrderByCreatedAtDesc(
+                page, userId, FileStatus.AVAILABLE);
+
+        Page<FileInfoResponse> responsePage = new Page<>(page.getCurrent(), page.getSize());
+        responsePage.setTotal(fileInfoPage.getTotal());
+        responsePage.setRecords(fileInfoPage.getRecords().stream()
+                .map(this::convertToResponse)
+                .toList());
+
+        return responsePage;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FileInfoResponse> getBusinessFiles(String businessType, String businessId, Long userId) {
-        List<FileInfo> fileInfos = fileInfoRepository.findByBusinessTypeAndBusinessIdAndStatus(
+        List<FileInfo> fileInfos = fileInfoMapper.findByBusinessTypeAndBusinessIdAndStatus(
                 businessType, businessId, FileStatus.AVAILABLE);
-        
+
         // 过滤有权限访问的文件
         return fileInfos.stream()
                 .filter(fileInfo -> checkFileAccess(fileInfo, userId))
@@ -360,13 +366,15 @@ public class FileServiceImpl implements FileService {
      * 获取文件信息并检查权限
      */
     private FileInfo getFileInfoWithPermissionCheck(Long fileId, Long userId) {
-        FileInfo fileInfo = fileInfoRepository.findById(fileId)
-                .orElseThrow(() -> new IllegalArgumentException("文件不存在: " + fileId));
-        
+        FileInfo fileInfo = fileInfoMapper.selectById(fileId);
+        if (fileInfo == null) {
+            throw new IllegalArgumentException("文件不存在: " + fileId);
+        }
+
         if (!checkFileAccess(fileInfo, userId)) {
             throw new SecurityException("无权限访问文件: " + fileId);
         }
-        
+
         return fileInfo;
     }
 
@@ -437,12 +445,12 @@ public class FileServiceImpl implements FileService {
 
         @Override
         public Long getTotalFiles() {
-            return fileInfoRepository.countByUserIdAndStatus(userId, FileStatus.AVAILABLE);
+            return fileInfoMapper.countByUserIdAndStatus(userId, FileStatus.AVAILABLE);
         }
 
         @Override
         public Long getTotalSize() {
-            return fileInfoRepository.sumFileSizeByUserIdAndStatus(userId, FileStatus.AVAILABLE);
+            return fileInfoMapper.sumFileSizeByUserIdAndStatus(userId, FileStatus.AVAILABLE);
         }
 
         @Override
@@ -454,7 +462,7 @@ public class FileServiceImpl implements FileService {
         public Long getTodayUploads() {
             LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
             LocalDateTime endOfDay = startOfDay.plusDays(1);
-            return fileInfoRepository.countByUserIdAndStatusAndCreatedAtBetween(
+            return fileInfoMapper.countByUserIdAndStatusAndCreatedAtBetween(
                     userId, FileStatus.AVAILABLE, startOfDay, endOfDay);
         }
 
@@ -462,7 +470,7 @@ public class FileServiceImpl implements FileService {
         public Long getMonthUploads() {
             LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
             LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-            return fileInfoRepository.countByUserIdAndStatusAndCreatedAtBetween(
+            return fileInfoMapper.countByUserIdAndStatusAndCreatedAtBetween(
                     userId, FileStatus.AVAILABLE, startOfMonth, endOfMonth);
         }
     }
