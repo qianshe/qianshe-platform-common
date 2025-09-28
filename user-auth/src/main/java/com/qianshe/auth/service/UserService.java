@@ -7,6 +7,7 @@ import com.qianshe.auth.domain.dto.UpdatePasswordDTO;
 import com.qianshe.auth.domain.vo.LoginVO;
 import com.qianshe.auth.domain.vo.UserInfoVO;
 import com.qianshe.common.domain.User;
+import com.qianshe.common.exception.ServiceException;
 
 /**
  * 用户Service接口

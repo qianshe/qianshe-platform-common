@@ -1,9 +1,8 @@
 package com.qianshe.common.dto;
 
-import lombok.Data;
-
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.Data;
 
 /**
  * 分页请求DTO

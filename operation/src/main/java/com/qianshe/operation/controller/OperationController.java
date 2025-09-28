@@ -2,6 +2,7 @@ package com.qianshe.operation.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qianshe.common.result.Result;
 import com.qianshe.operation.entity.AuditTask;
 import com.qianshe.operation.enums.AuditStatus;
@@ -11,9 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,12 +51,13 @@ public class OperationController {
     @SaCheckLogin
     @SaCheckRole("admin")
     @Operation(summary = "分页查询审核任务", description = "分页查询审核任务列表")
-    public Result<Page<AuditTask>> getAuditTasks(
-            @Parameter(description = "页码") @RequestParam(defaultValue = "0") int page,
+    public Result<IPage<AuditTask>> getAuditTasks(
+            @Parameter(description = "页码，从0开始") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<AuditTask> tasks = operationService.getAuditTasks(pageable);
+            // 转换页码：前端从0开始，后端从1开始
+            int actualPage = page + 1;
+            IPage<AuditTask> tasks = operationService.getAuditTasks(actualPage, size);
             return Result.ok(tasks);
         } catch (Exception e) {
             log.error("查询审核任务失败", e);
@@ -70,13 +69,14 @@ public class OperationController {
     @SaCheckLogin
     @SaCheckRole("admin")
     @Operation(summary = "按状态查询审核任务", description = "根据状态分页查询审核任务")
-    public Result<Page<AuditTask>> getAuditTasksByStatus(
+    public Result<IPage<AuditTask>> getAuditTasksByStatus(
             @PathVariable AuditStatus status,
-            @Parameter(description = "页码") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "页码，从0开始") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<AuditTask> tasks = operationService.getAuditTasksByStatus(status, pageable);
+            // 转换页码：前端从0开始，后端从1开始
+            int actualPage = page + 1;
+            IPage<AuditTask> tasks = operationService.getAuditTasksByStatus(status, actualPage, size);
             return Result.ok(tasks);
         } catch (Exception e) {
             log.error("按状态查询审核任务失败", e);

@@ -3,8 +3,6 @@ package com.qianshe.auth.domain.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * 验证码验证请求DTO

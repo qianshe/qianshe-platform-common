@@ -1,10 +1,10 @@
 package com.qianshe.filestorage.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qianshe.filestorage.config.FileStorageConfig;
 import com.qianshe.filestorage.dto.FileInfoResponse;
 import com.qianshe.filestorage.dto.FileUploadRequest;
 import com.qianshe.filestorage.entity.FileInfo;
-import com.qianshe.filestorage.enums.FileAccessType;
 import com.qianshe.filestorage.enums.FileStatus;
 import com.qianshe.filestorage.mapper.FileInfoMapper;
 import com.qianshe.filestorage.service.FileService;
@@ -15,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -25,13 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 文件服务实现

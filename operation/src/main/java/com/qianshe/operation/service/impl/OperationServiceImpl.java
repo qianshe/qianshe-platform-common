@@ -9,8 +9,6 @@ import com.qianshe.operation.mapper.AuditTaskMapper;
 import com.qianshe.operation.service.OperationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,33 +51,48 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<AuditTask> getAuditTasks(Pageable pageable) {
-        log.info("分页查询审核任务，页码: {}, 大小: {}", pageable.getPageNumber(), pageable.getPageSize());
-        
-        // 转换分页参数
-        Page<AuditTask> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
-        
+    public IPage<AuditTask> getAuditTasks(Integer page, Integer size) {
+        log.info("分页查询审核任务，页码: {}, 大小: {}", page, size);
+
+        // 参数验证
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1 || size > 100) {
+            size = 20;
+        }
+
+        // 创建分页参数
+        Page<AuditTask> pageParam = new Page<>(page, size);
+
         // 查询数据
-        IPage<AuditTask> result = auditTaskMapper.selectPage(page,
+        IPage<AuditTask> result = auditTaskMapper.selectPage(pageParam,
             new QueryWrapper<AuditTask>().orderByDesc("created_at"));
-        
-        // 转换为Spring Data Page
-        return new PageImpl<>(result.getRecords(), pageable, result.getTotal());
+
+        log.info("分页查询审核任务完成，总记录数: {}", result.getTotal());
+        return result;
     }
 
     @Override
-    public org.springframework.data.domain.Page<AuditTask> getAuditTasksByStatus(AuditStatus status, Pageable pageable) {
-        log.info("根据状态查询审核任务，状态: {}, 页码: {}, 大小: {}", 
-                status, pageable.getPageNumber(), pageable.getPageSize());
-        
-        // 转换分页参数
-        Page<AuditTask> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
-        
+    public IPage<AuditTask> getAuditTasksByStatus(AuditStatus status, Integer page, Integer size) {
+        log.info("根据状态查询审核任务，状态: {}, 页码: {}, 大小: {}", status, page, size);
+
+        // 参数验证
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1 || size > 100) {
+            size = 20;
+        }
+
+        // 创建分页参数
+        Page<AuditTask> pageParam = new Page<>(page, size);
+
         // 查询数据
-        IPage<AuditTask> result = auditTaskMapper.selectByStatus(page, status);
-        
-        // 转换为Spring Data Page
-        return new PageImpl<>(result.getRecords(), pageable, result.getTotal());
+        IPage<AuditTask> result = auditTaskMapper.selectByStatus(pageParam, status);
+
+        log.info("根据状态查询审核任务完成，状态: {}, 总记录数: {}", status, result.getTotal());
+        return result;
     }
 
     @Override

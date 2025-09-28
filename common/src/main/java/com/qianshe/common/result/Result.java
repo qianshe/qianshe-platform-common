@@ -129,23 +129,6 @@ public class Result<T> implements Serializable {
     }
 
     // ========== 兼容性方法 ==========
-
-    /**
-     * 成功返回结果（兼容性方法，等同于ok()）
-     */
-    public static <T> Result<T> success() {
-        return ok();
-    }
-
-    /**
-     * 成功返回结果（兼容性方法，等同于ok(T data)）
-     *
-     * @param data 返回数据
-     */
-    public static <T> Result<T> success(T data) {
-        return ok(data);
-    }
-
     /**
      * 成功返回结果（兼容性方法，等同于ok(String message, T data)）
      *
@@ -191,5 +174,65 @@ public class Result<T> implements Serializable {
      */
     public static <T> Result<T> error(Integer code, String message, T data) {
         return fail(code, message, data);
+    }
+
+    // ========== 实例方法 ==========
+
+    /**
+     * 判断是否成功
+     *
+     * @return 是否成功
+     */
+    public boolean isSuccess() {
+        return ResultCode.SUCCESS.getCode() == this.code;
+    }
+
+    /**
+     * 判断是否失败
+     *
+     * @return 是否失败
+     */
+    public boolean isFail() {
+        return !isSuccess();
+    }
+
+    /**
+     * 成功响应（泛型方法）
+     *
+     * @param data 响应数据
+     * @param <T> 数据类型
+     * @return Result对象
+     */
+    public static <T> Result<T> success(T data) {
+        return new Result<>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), data);
+    }
+
+    /**
+     * 成功响应（无数据）
+     *
+     * @return Result对象
+     */
+    public static Result<Void> success() {
+        return new Result<>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), null);
+    }
+
+    /**
+     * 成功响应（布尔值）
+     *
+     * @param success 成功标志
+     * @return Result对象
+     */
+    public static Result<Boolean> success(Boolean success) {
+        return new Result<>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), success);
+    }
+
+    /**
+     * 成功响应（整数）
+     *
+     * @param value 整数值
+     * @return Result对象
+     */
+    public static Result<Integer> success(Integer value) {
+        return new Result<>(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMessage(), value);
     }
 }

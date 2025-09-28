@@ -1,9 +1,8 @@
 package com.qianshe.operation.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qianshe.operation.entity.AuditTask;
 import com.qianshe.operation.enums.AuditStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -23,13 +22,22 @@ public interface OperationService {
 
     /**
      * 分页查询审核任务
+     *
+     * @param page 页码，从1开始
+     * @param size 每页大小
+     * @return 分页结果
      */
-    Page<AuditTask> getAuditTasks(Pageable pageable);
+    IPage<AuditTask> getAuditTasks(Integer page, Integer size);
 
     /**
      * 根据状态查询审核任务
+     *
+     * @param status 审核状态
+     * @param page 页码，从1开始
+     * @param size 每页大小
+     * @return 分页结果
      */
-    Page<AuditTask> getAuditTasksByStatus(AuditStatus status, Pageable pageable);
+    IPage<AuditTask> getAuditTasksByStatus(AuditStatus status, Integer page, Integer size);
 
     /**
      * 审核任务

@@ -2,6 +2,7 @@ package com.qianshe.filestorage.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qianshe.common.result.Result;
 import com.qianshe.filestorage.dto.FileInfoResponse;
 import com.qianshe.filestorage.dto.FileUploadRequest;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
