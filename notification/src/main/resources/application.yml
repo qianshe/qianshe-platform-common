@@ -1,0 +1,169 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: notification
+  profiles:
+    active: dev
+  
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/qianshe_notification?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:qianshe_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    open-in-view: false
+
+  # Redis配置
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:qianshe_password}
+      database: 0
+      timeout: 10s
+      lettuce:
+        pool:
+          min-idle: 0
+          max-idle: 8
+          max-active: 8
+          max-wait: -1ms
+
+  # RabbitMQ配置
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: /
+    connection-timeout: 15000
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+
+  # 邮件配置
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  # Cloud配置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        service: ${spring.application.name}
+        metadata:
+          version: 1.0.0
+          region: default
+
+# Sa-Token配置
+sa-token:
+  token-name: Authorization
+  timeout: 2592000
+  active-timeout: 1800
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-log: false
+  is-read-cookie: false
+  is-read-head: true
+  is-print: false
+  alone-redis:
+    database: ${spring.data.redis.database}
+    host: ${spring.data.redis.host}
+    port: ${spring.data.redis.port}
+    password: ${spring.data.redis.password}
+    timeout: ${spring.data.redis.timeout}
+
+# 通知服务配置
+notification:
+  # 定时任务配置
+  scheduled:
+    enabled: true
+  
+  # 短信配置
+  sms:
+    enabled: false
+    provider: aliyun
+    access-key: ${SMS_ACCESS_KEY:}
+    secret-key: ${SMS_SECRET_KEY:}
+    sign-name: ${SMS_SIGN_NAME:}
+    
+  # 邮件配置
+  email:
+    enabled: true
+    from: ${MAIL_FROM:noreply@qianshe.com}
+    
+  # 推送配置
+  push:
+    enabled: false
+    
+  # 微信配置
+  wechat:
+    enabled: false
+    app-id: ${WECHAT_APP_ID:}
+    app-secret: ${WECHAT_APP_SECRET:}
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.qianshe.notification: DEBUG
+    org.springframework.data.jpa: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# OpenAPI文档配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  info:
+    title: 通知服务API
+    description: 千舍平台通知服务接口文档
+    version: 1.0.0
+    contact:
+      name: qianshe
+      email: dev@qianshe.com

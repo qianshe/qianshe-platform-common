@@ -38,6 +38,17 @@ spring:
               args:
                 rate-limiter: "#{@defaultRedisRateLimiter}"
                 key-resolver: "#{@ipKeyResolver}"
+
+        # 星空创意资源对接平台路由
+        - id: stellar-bridge
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/v1/resource/**,/api/v1/demand/**,/api/v1/matching/**,/api/v1/notification/**,/api/v1/operation/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@stellarRedisRateLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
       httpclient:
         connect-timeout: 5000
         response-timeout: 10000
@@ -129,6 +140,8 @@ gateway:
       - /api/creative-seeds/page
       - /api/comment
       - /api/branches/tree
+      - /api/v1/resource/health
+      - /api/v1/demand/health
 
 # IP黑名单配置
 blacklist:
@@ -162,3 +175,24 @@ rate-limiter:
       capacity: 10
       rate: 5
       window: 20
+    # stellar-bridge 限流规则
+    - path: "/api/v1/resource"
+      capacity: 30
+      rate: 10
+      window: 60
+    - path: "/api/v1/demand"
+      capacity: 30
+      rate: 10
+      window: 60
+    - path: "/api/v1/matching"
+      capacity: 20
+      rate: 5
+      window: 60
+    - path: "/api/v1/notification"
+      capacity: 50
+      rate: 15
+      window: 30
+    - path: "/api/v1/operation"
+      capacity: 10
+      rate: 3
+      window: 60

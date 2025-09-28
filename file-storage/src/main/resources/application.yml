@@ -1,0 +1,188 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: file-storage
+  profiles:
+    active: dev
+  
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/qianshe_file_storage?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: FileStorageHikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    open-in-view: false
+
+  # Redis配置
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: 123456
+      database: 3
+      timeout: 6000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 500MB
+      enabled: true
+
+  # Cloud配置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: nacos:8848
+        namespace: qianshe
+        group: DEFAULT_GROUP
+        service: ${spring.application.name}
+        metadata:
+          version: 1.0.0
+          zone: default
+
+# Sa-Token配置
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: 2592000
+  activity-timeout: -1
+  is-concurrent: true
+  is-share: true
+  token-style: uuid
+  is-log: false
+  is-colorLog: false
+  dao-type: redis
+  redis-config:
+    host: redis
+    port: 6379
+    password: 123456
+    database: 1
+
+# 文件存储配置
+file:
+  storage:
+    type: LOCAL
+    local:
+      base-path: /app/files
+      url-prefix: /files
+      date-folder: true
+    upload:
+      max-file-size: 104857600  # 100MB
+      max-file-count: 10
+      allowed-types:
+        - image/jpeg
+        - image/png
+        - image/gif
+        - image/webp
+        - application/pdf
+        - text/plain
+        - application/msword
+        - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        - application/vnd.ms-excel
+        - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      forbidden-extensions:
+        - exe
+        - bat
+        - cmd
+        - com
+        - pif
+        - scr
+        - vbs
+        - js
+    image:
+      enabled: true
+      default-thumbnail-sizes:
+        - "100,100"
+        - "200,200"
+        - "400,400"
+      quality: 0.8
+      watermark-opacity: 0.5
+    cleanup:
+      enabled: true
+      temp-file-retention-hours: 24
+      deleted-file-retention-days: 30
+      inactive-file-threshold-days: 365
+      cleanup-cron: "0 0 2 * * ?"
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env,configprops,loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.9, 0.95, 0.99
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.profiles.active}
+
+# 日志配置
+logging:
+  level:
+    com.qianshe.filestorage: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# OpenAPI文档配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  info:
+    title: 文件存储服务API
+    description: 提供文件上传、下载、管理等功能
+    version: 1.0.0
+    contact:
+      name: qianshe
+      email: support@qianshe.com

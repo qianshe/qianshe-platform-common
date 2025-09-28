@@ -39,4 +39,15 @@ public class RedisRateLimiterConfig {
     public RedisRateLimiter authRedisRateLimiter() {
         return new RedisRateLimiter(10, 20, 1);
     }
-} 
+
+    /**
+     * 星空创意资源对接平台限流配置
+     * 资源匹配等业务接口使用中等限流策略
+     *
+     * @return Redis限流器
+     */
+    @Bean
+    public RedisRateLimiter stellarRedisRateLimiter() {
+        return new RedisRateLimiter(5, 10, 1);
+    }
+}

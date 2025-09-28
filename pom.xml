@@ -15,6 +15,9 @@
         <module>common</module>
         <module>gateway</module>
         <module>user-auth</module>
+        <module>notification</module>
+        <module>operation</module>
+        <module>file-storage</module>
     </modules>
 
     <properties>
