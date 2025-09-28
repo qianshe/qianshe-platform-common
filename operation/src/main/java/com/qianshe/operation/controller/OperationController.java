@@ -2,7 +2,7 @@ package com.qianshe.operation.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.qianshe.common.dto.Result;
+import com.qianshe.common.result.Result;
 import com.qianshe.operation.entity.AuditTask;
 import com.qianshe.operation.enums.AuditStatus;
 import com.qianshe.operation.service.OperationService;

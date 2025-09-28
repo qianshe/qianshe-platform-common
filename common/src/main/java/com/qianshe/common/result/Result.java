@@ -127,4 +127,69 @@ public class Result<T> implements Serializable {
     public static <T> Result<T> forbidden() {
         return new Result<>(ResultCode.FORBIDDEN.getCode(), ResultCode.FORBIDDEN.getMessage(), null);
     }
-} 
+
+    // ========== 兼容性方法 ==========
+
+    /**
+     * 成功返回结果（兼容性方法，等同于ok()）
+     */
+    public static <T> Result<T> success() {
+        return ok();
+    }
+
+    /**
+     * 成功返回结果（兼容性方法，等同于ok(T data)）
+     *
+     * @param data 返回数据
+     */
+    public static <T> Result<T> success(T data) {
+        return ok(data);
+    }
+
+    /**
+     * 成功返回结果（兼容性方法，等同于ok(String message, T data)）
+     *
+     * @param message 返回消息
+     * @param data    返回数据
+     */
+    public static <T> Result<T> success(String message, T data) {
+        return ok(message, data);
+    }
+
+    /**
+     * 失败返回结果（兼容性方法，等同于fail()）
+     */
+    public static <T> Result<T> error() {
+        return fail();
+    }
+
+    /**
+     * 失败返回结果（兼容性方法，等同于fail(String message)）
+     *
+     * @param message 错误消息
+     */
+    public static <T> Result<T> error(String message) {
+        return fail(message);
+    }
+
+    /**
+     * 失败返回结果（兼容性方法，等同于fail(Integer code, String message)）
+     *
+     * @param code    错误码
+     * @param message 错误消息
+     */
+    public static <T> Result<T> error(Integer code, String message) {
+        return fail(code, message);
+    }
+
+    /**
+     * 失败返回结果（兼容性方法，等同于fail(Integer code, String message, T data)）
+     *
+     * @param code    错误码
+     * @param message 错误消息
+     * @param data    错误数据
+     */
+    public static <T> Result<T> error(Integer code, String message, T data) {
+        return fail(code, message, data);
+    }
+}

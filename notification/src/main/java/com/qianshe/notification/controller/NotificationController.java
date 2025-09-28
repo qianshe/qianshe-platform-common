@@ -2,7 +2,7 @@ package com.qianshe.notification.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
-import com.qianshe.common.dto.Result;
+import com.qianshe.common.result.Result;
 import com.qianshe.notification.dto.*;
 import com.qianshe.notification.entity.Notification;
 import com.qianshe.notification.enums.NotificationChannel;
