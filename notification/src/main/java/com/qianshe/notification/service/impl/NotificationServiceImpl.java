@@ -1,5 +1,7 @@
 package com.qianshe.notification.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qianshe.notification.channel.NotificationChannelManager;
 import com.qianshe.notification.dto.BatchSendRequest;
 import com.qianshe.notification.dto.NotificationDTO;
@@ -10,15 +12,14 @@ import com.qianshe.notification.entity.NotificationTemplate;
 import com.qianshe.notification.enums.NotificationChannel;
 import com.qianshe.notification.enums.NotificationStatus;
 import com.qianshe.notification.enums.NotificationType;
-import com.qianshe.notification.repository.NotificationRepository;
-import com.qianshe.notification.repository.NotificationTemplateRepository;
+import com.qianshe.notification.mapper.NotificationMapper;
+import com.qianshe.notification.mapper.NotificationTemplateMapper;
 import com.qianshe.notification.service.NotificationService;
 import com.qianshe.notification.service.NotificationTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * 通知服务实现类
- * 
+ *
  * @author qianshe
  * @since 1.0.0
  */
@@ -41,8 +42,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
-    private final NotificationRepository notificationRepository;
-    private final NotificationTemplateRepository templateRepository;
+    private final NotificationMapper notificationMapper;
+    private final NotificationTemplateMapper templateMapper;
     private final NotificationTemplateService templateService;
     private final NotificationChannelManager channelManager;
 
@@ -67,7 +68,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public List<Notification> batchSendNotifications(BatchSendRequest request) {
         log.info("批量发送通知请求: {}", request);
-        
+
         List<Notification> notifications = new ArrayList<>();
         for (SendNotificationRequest notificationRequest : request.getNotifications()) {
             try {
@@ -83,7 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
                 log.error("批量发送通知失败: {}", notificationRequest, e);
             }
         }
-        
+
         return notifications;
     }
 
@@ -109,16 +110,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public Notification sendByTemplate(String templateCode, List<Long> receiverIds, 
-                                     List<NotificationChannel> channels, 
+    public Notification sendByTemplate(String templateCode, List<Long> receiverIds,
+                                     List<NotificationChannel> channels,
                                      Map<String, Object> templateParams,
                                      String businessId, String businessType) {
-        log.info("根据模板发送通知: templateCode={}, receiverIds={}, channels={}", 
+        log.info("根据模板发送通知: templateCode={}, receiverIds={}, channels={}",
                 templateCode, receiverIds, channels);
 
         // 获取模板
-        NotificationTemplate template = templateRepository.findByTemplateCodeAndEnabled(templateCode, true)
-                .orElseThrow(() -> new IllegalArgumentException("模板不存在或已禁用: " + templateCode));
+        NotificationTemplate template = templateMapper.selectByTemplateCodeAndEnabled(templateCode, true);
+        if (template == null) {
+            throw new IllegalArgumentException("模板不存在或已禁用: " + templateCode);
+        }
 
         // 构建发送请求
         SendNotificationRequest request = new SendNotificationRequest();
@@ -134,37 +137,53 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Page<NotificationDTO> getUserNotifications(Long userId, Pageable pageable) {
-        Page<Notification> notifications = notificationRepository.findByReceiverIdOrderByCreatedAtDesc(userId, pageable);
-        return notifications.map(this::convertToDTO);
+    public org.springframework.data.domain.Page<NotificationDTO> getUserNotifications(Long userId, Pageable pageable) {
+        Page<Notification> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
+        IPage<Notification> notifications = notificationMapper.selectPageByReceiverId(page, userId);
+        List<NotificationDTO> dtos = notifications.getRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(dtos, pageable, notifications.getTotal());
     }
 
     @Override
-    public Page<NotificationDTO> getUserNotificationsByStatus(Long userId, NotificationStatus status, Pageable pageable) {
-        Page<Notification> notifications = notificationRepository.findByReceiverIdAndStatusOrderByCreatedAtDesc(userId, status, pageable);
-        return notifications.map(this::convertToDTO);
+    public org.springframework.data.domain.Page<NotificationDTO> getUserNotificationsByStatus(Long userId, NotificationStatus status, Pageable pageable) {
+        Page<Notification> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
+        IPage<Notification> notifications = notificationMapper.selectPageByReceiverIdAndStatus(page, userId, status.name());
+        List<NotificationDTO> dtos = notifications.getRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(dtos, pageable, notifications.getTotal());
     }
 
     @Override
-    public Page<NotificationDTO> getUserNotificationsByType(Long userId, NotificationType type, Pageable pageable) {
-        Page<Notification> notifications = notificationRepository.findByReceiverIdAndTypeOrderByCreatedAtDesc(userId, type, pageable);
-        return notifications.map(this::convertToDTO);
+    public org.springframework.data.domain.Page<NotificationDTO> getUserNotificationsByType(Long userId, NotificationType type, Pageable pageable) {
+        Page<Notification> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
+        IPage<Notification> notifications = notificationMapper.selectPageByReceiverIdAndType(page, userId, type.name());
+        List<NotificationDTO> dtos = notifications.getRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(dtos, pageable, notifications.getTotal());
     }
 
     @Override
-    public Page<NotificationDTO> getUserNotificationsByChannel(Long userId, NotificationChannel channel, Pageable pageable) {
-        Page<Notification> notifications = notificationRepository.findByReceiverIdAndChannelOrderByCreatedAtDesc(userId, channel, pageable);
-        return notifications.map(this::convertToDTO);
+    public org.springframework.data.domain.Page<NotificationDTO> getUserNotificationsByChannel(Long userId, NotificationChannel channel, Pageable pageable) {
+        Page<Notification> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
+        IPage<Notification> notifications = notificationMapper.selectPageByReceiverIdAndChannel(page, userId, channel.name());
+        List<NotificationDTO> dtos = notifications.getRecords().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(dtos, pageable, notifications.getTotal());
     }
 
     @Override
     public long getUnreadCount(Long userId) {
-        return notificationRepository.countByReceiverIdAndStatus(userId, NotificationStatus.SUCCESS);
+        return notificationMapper.countByReceiverIdAndStatus(userId, NotificationStatus.SUCCESS.name());
     }
 
     @Override
     public long getUnreadCountByType(Long userId, NotificationType type) {
-        return notificationRepository.countByReceiverIdAndTypeAndStatus(userId, type, NotificationStatus.SUCCESS);
+        return notificationMapper.countByReceiverIdAndTypeAndStatus(userId, type.name(), NotificationStatus.SUCCESS.name());
     }
 
     @Override
@@ -173,30 +192,29 @@ public class NotificationServiceImpl implements NotificationService {
         if (CollectionUtils.isEmpty(notificationIds)) {
             return false;
         }
-        
-        int updatedCount = notificationRepository.markAsRead(userId, notificationIds, 
-                NotificationStatus.READ, LocalDateTime.now());
+
+        int updatedCount = notificationMapper.updateMarkAsRead(userId, notificationIds,
+                NotificationStatus.READ.name(), LocalDateTime.now());
         return updatedCount > 0;
     }
 
     @Override
     @Transactional
     public boolean markAllAsRead(Long userId) {
-        int updatedCount = notificationRepository.markAllAsRead(userId, 
-                NotificationStatus.READ, NotificationStatus.SUCCESS, LocalDateTime.now());
+        int updatedCount = notificationMapper.updateMarkAllAsRead(userId,
+                NotificationStatus.READ.name(), NotificationStatus.SUCCESS.name(), LocalDateTime.now());
         return updatedCount > 0;
     }
 
     @Override
     public NotificationDTO getNotificationById(Long id) {
-        return notificationRepository.findById(id)
-                .map(this::convertToDTO)
-                .orElse(null);
+        Notification notification = notificationMapper.selectById(id);
+        return notification != null ? convertToDTO(notification) : null;
     }
 
     @Override
     public List<NotificationDTO> getNotificationsByBusiness(String businessId, String businessType) {
-        List<Notification> notifications = notificationRepository.findByBusinessIdAndBusinessType(businessId, businessType);
+        List<Notification> notifications = notificationMapper.selectByBusinessIdAndType(businessId, businessType);
         return notifications.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -230,7 +248,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // 保存通知
-        notification = notificationRepository.save(notification);
+        notificationMapper.insert(notification);
 
         // 发送通知
         sendNotificationToChannel(notification);
@@ -243,18 +261,20 @@ public class NotificationServiceImpl implements NotificationService {
      */
     private void processTemplate(Notification notification, SendNotificationRequest request) {
         try {
-            NotificationTemplate template = templateRepository.findByTemplateCodeAndEnabled(request.getTemplateCode(), true)
-                    .orElseThrow(() -> new IllegalArgumentException("模板不存在或已禁用: " + request.getTemplateCode()));
+            NotificationTemplate template = templateMapper.selectByTemplateCodeAndEnabled(request.getTemplateCode(), true);
+            if (template == null) {
+                throw new IllegalArgumentException("模板不存在或已禁用: " + request.getTemplateCode());
+            }
 
             notification.setTemplateId(template.getId());
-            
+
             // 渲染模板
             String title = templateService.renderTemplate(template.getTitleTemplate(), request.getTemplateParams());
             String content = templateService.renderTemplate(template.getContentTemplate(), request.getTemplateParams());
-            
+
             notification.setTitle(title);
             notification.setContent(content);
-            
+
             // 保存模板参数
             if (request.getTemplateParams() != null) {
                 notification.setTemplateParams(request.getTemplateParams().toString());
@@ -272,11 +292,11 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             notification.setStatus(NotificationStatus.SENDING);
             notification.setSendTime(LocalDateTime.now());
-            notificationRepository.save(notification);
+            notificationMapper.updateById(notification);
 
             // 通过渠道管理器发送
             boolean success = channelManager.sendNotification(notification);
-            
+
             if (success) {
                 notification.setStatus(NotificationStatus.SUCCESS);
             } else {
@@ -288,7 +308,7 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setStatus(NotificationStatus.FAILED);
             notification.setFailureReason(e.getMessage());
         } finally {
-            notificationRepository.save(notification);
+            notificationMapper.updateById(notification);
         }
     }
 
@@ -299,9 +319,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         // 查询需要重试的通知（5分钟前失败的）
         LocalDateTime retryTime = LocalDateTime.now().minusMinutes(5);
-        Pageable pageable = PageRequest.of(0, 100);
-        List<Notification> failedNotifications = notificationRepository.findRetryableNotifications(
-                NotificationStatus.FAILED, retryTime, pageable);
+        Page<Notification> page = new Page<>(1, 100);
+        List<Notification> failedNotifications = notificationMapper.selectRetryableNotifications(
+                NotificationStatus.FAILED.name(), retryTime, page);
 
         for (Notification notification : failedNotifications) {
             try {
@@ -318,7 +338,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public int cleanupReadNotifications(LocalDateTime beforeTime) {
         log.info("清理已读通知，时间早于: {}", beforeTime);
-        return notificationRepository.deleteReadNotificationsBefore(NotificationStatus.READ, beforeTime);
+        return notificationMapper.deleteReadNotificationsBefore(NotificationStatus.READ.name(), beforeTime);
     }
 
     @Override
@@ -328,7 +348,7 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationStatisticsDTO statistics = new NotificationStatisticsDTO();
 
         // 获取状态统计
-        List<Object[]> statusStats = notificationRepository.countNotificationsByStatusBetween(startTime, endTime);
+        List<Object[]> statusStats = notificationMapper.countNotificationsByStatusBetween(startTime, endTime);
         Map<String, Long> statusMap = new HashMap<>();
         long totalCount = 0;
 
@@ -353,7 +373,7 @@ public class NotificationServiceImpl implements NotificationService {
         statistics.setStatusStatistics(statusMap);
 
         // 获取渠道统计
-        List<Object[]> channelStats = notificationRepository.countNotificationsByChannelAndStatusBetween(startTime, endTime);
+        List<Object[]> channelStats = notificationMapper.countNotificationsByChannelAndStatusBetween(startTime, endTime);
         Map<String, Long> channelMap = new HashMap<>();
         Map<String, Long> typeMap = new HashMap<>();
 
@@ -384,14 +404,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public boolean cancelNotification(Long notificationId) {
-        Optional<Notification> optionalNotification = notificationRepository.findById(notificationId);
-        if (optionalNotification.isPresent()) {
-            Notification notification = optionalNotification.get();
-            if (notification.getStatus() == NotificationStatus.PENDING) {
-                notification.setStatus(NotificationStatus.CANCELLED);
-                notificationRepository.save(notification);
-                return true;
-            }
+        Notification notification = notificationMapper.selectById(notificationId);
+        if (notification != null && notification.getStatus() == NotificationStatus.PENDING) {
+            notification.setStatus(NotificationStatus.CANCELLED);
+            notificationMapper.updateById(notification);
+            return true;
         }
         return false;
     }

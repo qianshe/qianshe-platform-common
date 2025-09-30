@@ -44,10 +44,10 @@ public class NotificationTemplateController {
         try {
             template.setCreatorId(StpUtil.getLoginIdAsLong());
             NotificationTemplate createdTemplate = templateService.createTemplate(template);
-            return Result.success(createdTemplate);
+            return Result.ok(createdTemplate);
         } catch (Exception e) {
             log.error("创建通知模板失败", e);
-            return Result.error("创建通知模板失败: " + e.getMessage());
+            return Result.fail("创建通知模板失败: " + e.getMessage());
         }
     }
 
@@ -60,10 +60,10 @@ public class NotificationTemplateController {
             @Valid @RequestBody NotificationTemplate template) {
         try {
             NotificationTemplate updatedTemplate = templateService.updateTemplate(id, template);
-            return Result.success(updatedTemplate);
+            return Result.ok(updatedTemplate);
         } catch (Exception e) {
             log.error("更新通知模板失败", e);
-            return Result.error("更新通知模板失败: " + e.getMessage());
+            return Result.fail("更新通知模板失败: " + e.getMessage());
         }
     }
 
@@ -74,10 +74,10 @@ public class NotificationTemplateController {
     public Result<Boolean> deleteTemplate(@PathVariable Long id) {
         try {
             boolean success = templateService.deleteTemplate(id);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("删除通知模板失败", e);
-            return Result.error("删除通知模板失败: " + e.getMessage());
+            return Result.fail("删除通知模板失败: " + e.getMessage());
         }
     }
 
@@ -87,13 +87,13 @@ public class NotificationTemplateController {
         try {
             NotificationTemplate template = templateService.getTemplateById(id);
             if (template != null) {
-                return Result.success(template);
+                return Result.ok(template);
             } else {
-                return Result.error("模板不存在");
+                return Result.fail("模板不存在");
             }
         } catch (Exception e) {
             log.error("获取通知模板详情失败", e);
-            return Result.error("获取通知模板详情失败: " + e.getMessage());
+            return Result.fail("获取通知模板详情失败: " + e.getMessage());
         }
     }
 
@@ -103,13 +103,13 @@ public class NotificationTemplateController {
         try {
             NotificationTemplate template = templateService.getTemplateByCode(templateCode);
             if (template != null) {
-                return Result.success(template);
+                return Result.ok(template);
             } else {
-                return Result.error("模板不存在");
+                return Result.fail("模板不存在");
             }
         } catch (Exception e) {
             log.error("根据编码获取模板失败", e);
-            return Result.error("根据编码获取模板失败: " + e.getMessage());
+            return Result.fail("根据编码获取模板失败: " + e.getMessage());
         }
     }
 
@@ -121,10 +121,10 @@ public class NotificationTemplateController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationTemplate> templates = templateService.getTemplates(pageable);
-            return Result.success(templates);
+            return Result.ok(templates);
         } catch (Exception e) {
             log.error("分页获取通知模板失败", e);
-            return Result.error("分页获取通知模板失败: " + e.getMessage());
+            return Result.fail("分页获取通知模板失败: " + e.getMessage());
         }
     }
 
@@ -137,10 +137,10 @@ public class NotificationTemplateController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationTemplate> templates = templateService.getTemplatesByType(type, pageable);
-            return Result.success(templates);
+            return Result.ok(templates);
         } catch (Exception e) {
             log.error("按类型获取模板失败", e);
-            return Result.error("按类型获取模板失败: " + e.getMessage());
+            return Result.fail("按类型获取模板失败: " + e.getMessage());
         }
     }
 
@@ -153,10 +153,10 @@ public class NotificationTemplateController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationTemplate> templates = templateService.getTemplatesByEnabled(enabled, pageable);
-            return Result.success(templates);
+            return Result.ok(templates);
         } catch (Exception e) {
             log.error("按启用状态获取模板失败", e);
-            return Result.error("按启用状态获取模板失败: " + e.getMessage());
+            return Result.fail("按启用状态获取模板失败: " + e.getMessage());
         }
     }
 
@@ -169,10 +169,10 @@ public class NotificationTemplateController {
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationTemplate> templates = templateService.searchTemplatesByName(templateName, pageable);
-            return Result.success(templates);
+            return Result.ok(templates);
         } catch (Exception e) {
             log.error("搜索模板失败", e);
-            return Result.error("搜索模板失败: " + e.getMessage());
+            return Result.fail("搜索模板失败: " + e.getMessage());
         }
     }
 
@@ -181,10 +181,10 @@ public class NotificationTemplateController {
     public Result<List<NotificationTemplate>> getEnabledTemplatesByType(@PathVariable NotificationType type) {
         try {
             List<NotificationTemplate> templates = templateService.getEnabledTemplatesByType(type);
-            return Result.success(templates);
+            return Result.ok(templates);
         } catch (Exception e) {
             log.error("获取启用的模板失败", e);
-            return Result.error("获取启用的模板失败: " + e.getMessage());
+            return Result.fail("获取启用的模板失败: " + e.getMessage());
         }
     }
 
@@ -197,10 +197,10 @@ public class NotificationTemplateController {
             @Parameter(description = "启用状态") @RequestParam Boolean enabled) {
         try {
             boolean success = templateService.toggleTemplateStatus(id, enabled);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("切换模板状态失败", e);
-            return Result.error("切换模板状态失败: " + e.getMessage());
+            return Result.fail("切换模板状态失败: " + e.getMessage());
         }
     }
 
@@ -209,10 +209,10 @@ public class NotificationTemplateController {
     public Result<Boolean> validateTemplate(@RequestBody String template) {
         try {
             boolean valid = templateService.validateTemplate(template);
-            return Result.success(valid);
+            return Result.ok(valid);
         } catch (Exception e) {
             log.error("验证模板语法失败", e);
-            return Result.error("验证模板语法失败: " + e.getMessage());
+            return Result.fail("验证模板语法失败: " + e.getMessage());
         }
     }
 
@@ -221,10 +221,10 @@ public class NotificationTemplateController {
     public Result<Map<String, Long>> getTemplateStatistics() {
         try {
             Map<String, Long> statistics = templateService.getTemplateStatistics();
-            return Result.success(statistics);
+            return Result.ok(statistics);
         } catch (Exception e) {
             log.error("获取模板统计失败", e);
-            return Result.error("获取模板统计失败: " + e.getMessage());
+            return Result.fail("获取模板统计失败: " + e.getMessage());
         }
     }
 }

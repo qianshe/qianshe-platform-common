@@ -47,10 +47,10 @@ public class NotificationController {
     public Result<Notification> sendNotification(@Valid @RequestBody SendNotificationRequest request) {
         try {
             Notification notification = notificationService.sendNotification(request);
-            return Result.success(notification);
+            return Result.ok(notification);
         } catch (Exception e) {
             log.error("发送通知失败", e);
-            return Result.error("发送通知失败: " + e.getMessage());
+            return Result.fail("发送通知失败: " + e.getMessage());
         }
     }
 
@@ -59,10 +59,10 @@ public class NotificationController {
     public Result<List<Notification>> batchSendNotifications(@Valid @RequestBody BatchSendRequest request) {
         try {
             List<Notification> notifications = notificationService.batchSendNotifications(request);
-            return Result.success(notifications);
+            return Result.ok(notifications);
         } catch (Exception e) {
             log.error("批量发送通知失败", e);
-            return Result.error("批量发送通知失败: " + e.getMessage());
+            return Result.fail("批量发送通知失败: " + e.getMessage());
         }
     }
 
@@ -71,10 +71,10 @@ public class NotificationController {
     public Result<String> sendNotificationAsync(@Valid @RequestBody SendNotificationRequest request) {
         try {
             notificationService.sendNotificationAsync(request);
-            return Result.success("通知已提交异步发送");
+            return Result.ok("通知已提交异步发送");
         } catch (Exception e) {
             log.error("异步发送通知失败", e);
-            return Result.error("异步发送通知失败: " + e.getMessage());
+            return Result.fail("异步发送通知失败: " + e.getMessage());
         }
     }
 
@@ -92,10 +92,10 @@ public class NotificationController {
                     request.getBusinessId(),
                     request.getBusinessType()
             );
-            return Result.success(notification);
+            return Result.ok(notification);
         } catch (Exception e) {
             log.error("根据模板发送通知失败", e);
-            return Result.error("根据模板发送通知失败: " + e.getMessage());
+            return Result.fail("根据模板发送通知失败: " + e.getMessage());
         }
     }
 
@@ -109,10 +109,10 @@ public class NotificationController {
             Long userId = StpUtil.getLoginIdAsLong();
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationDTO> notifications = notificationService.getUserNotifications(userId, pageable);
-            return Result.success(notifications);
+            return Result.ok(notifications);
         } catch (Exception e) {
             log.error("获取用户通知失败", e);
-            return Result.error("获取用户通知失败: " + e.getMessage());
+            return Result.fail("获取用户通知失败: " + e.getMessage());
         }
     }
 
@@ -127,10 +127,10 @@ public class NotificationController {
             Long userId = StpUtil.getLoginIdAsLong();
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationDTO> notifications = notificationService.getUserNotificationsByStatus(userId, status, pageable);
-            return Result.success(notifications);
+            return Result.ok(notifications);
         } catch (Exception e) {
             log.error("按状态获取用户通知失败", e);
-            return Result.error("按状态获取用户通知失败: " + e.getMessage());
+            return Result.fail("按状态获取用户通知失败: " + e.getMessage());
         }
     }
 
@@ -145,10 +145,10 @@ public class NotificationController {
             Long userId = StpUtil.getLoginIdAsLong();
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationDTO> notifications = notificationService.getUserNotificationsByType(userId, type, pageable);
-            return Result.success(notifications);
+            return Result.ok(notifications);
         } catch (Exception e) {
             log.error("按类型获取用户通知失败", e);
-            return Result.error("按类型获取用户通知失败: " + e.getMessage());
+            return Result.fail("按类型获取用户通知失败: " + e.getMessage());
         }
     }
 
@@ -163,10 +163,10 @@ public class NotificationController {
             Long userId = StpUtil.getLoginIdAsLong();
             Pageable pageable = PageRequest.of(page, size);
             Page<NotificationDTO> notifications = notificationService.getUserNotificationsByChannel(userId, channel, pageable);
-            return Result.success(notifications);
+            return Result.ok(notifications);
         } catch (Exception e) {
             log.error("按渠道获取用户通知失败", e);
-            return Result.error("按渠道获取用户通知失败: " + e.getMessage());
+            return Result.fail("按渠道获取用户通知失败: " + e.getMessage());
         }
     }
 
@@ -177,10 +177,10 @@ public class NotificationController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             long count = notificationService.getUnreadCount(userId);
-            return Result.success(count);
+            return Result.ok(count);
         } catch (Exception e) {
             log.error("获取未读通知数量失败", e);
-            return Result.error("获取未读通知数量失败: " + e.getMessage());
+            return Result.fail("获取未读通知数量失败: " + e.getMessage());
         }
     }
 
@@ -191,10 +191,10 @@ public class NotificationController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             boolean success = notificationService.markAsRead(userId, notificationIds);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("标记通知为已读失败", e);
-            return Result.error("标记通知为已读失败: " + e.getMessage());
+            return Result.fail("标记通知为已读失败: " + e.getMessage());
         }
     }
 
@@ -205,10 +205,10 @@ public class NotificationController {
         try {
             Long userId = StpUtil.getLoginIdAsLong();
             boolean success = notificationService.markAllAsRead(userId);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("标记所有通知为已读失败", e);
-            return Result.error("标记所有通知为已读失败: " + e.getMessage());
+            return Result.fail("标记所有通知为已读失败: " + e.getMessage());
         }
     }
 
@@ -218,13 +218,13 @@ public class NotificationController {
         try {
             NotificationDTO notification = notificationService.getNotificationById(id);
             if (notification != null) {
-                return Result.success(notification);
+                return Result.ok(notification);
             } else {
-                return Result.error("通知不存在");
+                return Result.fail("通知不存在");
             }
         } catch (Exception e) {
             log.error("获取通知详情失败", e);
-            return Result.error("获取通知详情失败: " + e.getMessage());
+            return Result.fail("获取通知详情失败: " + e.getMessage());
         }
     }
 
@@ -235,10 +235,10 @@ public class NotificationController {
             @PathVariable String businessType) {
         try {
             List<NotificationDTO> notifications = notificationService.getNotificationsByBusiness(businessId, businessType);
-            return Result.success(notifications);
+            return Result.ok(notifications);
         } catch (Exception e) {
             log.error("根据业务获取通知失败", e);
-            return Result.error("根据业务获取通知失败: " + e.getMessage());
+            return Result.fail("根据业务获取通知失败: " + e.getMessage());
         }
     }
 
@@ -249,10 +249,10 @@ public class NotificationController {
             @Parameter(description = "结束时间") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         try {
             NotificationStatisticsDTO statistics = notificationService.getStatistics(startTime, endTime);
-            return Result.success(statistics);
+            return Result.ok(statistics);
         } catch (Exception e) {
             log.error("获取通知统计失败", e);
-            return Result.error("获取通知统计失败: " + e.getMessage());
+            return Result.fail("获取通知统计失败: " + e.getMessage());
         }
     }
 
@@ -261,10 +261,10 @@ public class NotificationController {
     public Result<Boolean> cancelNotification(@PathVariable Long id) {
         try {
             boolean success = notificationService.cancelNotification(id);
-            return Result.success(success);
+            return Result.ok(success);
         } catch (Exception e) {
             log.error("取消通知失败", e);
-            return Result.error("取消通知失败: " + e.getMessage());
+            return Result.fail("取消通知失败: " + e.getMessage());
         }
     }
 }
